@@ -168,4 +168,4 @@ class plotVoronoi:
                 index_2 = (triangle[(i+1)%len(triangle)])
 
                 plt.plot([x[index_1], x[index_2]], [y[index_1], y[index_2]])
-        plt.savefig("Delaunay_cities.png")
+        plt.savefig("figures/Delaunay_cities.png")

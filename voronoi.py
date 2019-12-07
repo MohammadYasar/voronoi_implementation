@@ -825,6 +825,7 @@ if __name__=="__main__":
     if doHelp or len(pts) == 0:
         usage()
         sys.exit(2)
+
     sl = SiteList(pts)
     voronoi(sl,c)
 
@@ -834,13 +835,9 @@ if __name__=="__main__":
     #print (c.edges) # edge 3-tuple: (line index, vertex 1 index, vertex 2 index)   if either vertex index is -1, the edge extends to infiinity
 
 
-
-
-
     pltv = plotVoronoi(pts = pts,polygons = c.polygons, triangles= c.triangles, vertices=c.vertices, lines=c.lines, edges=c.edges)
 
-
     pltv.plotPoints()
-    pltv.geoplot()
-    #pltv.plotPolygon()
-    pltv.plotTriangles()
+    #pltv.geoplot()
+    pltv.plotPolygon(args[0])
+    pltv.plotTriangles(args[0])

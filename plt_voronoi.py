@@ -27,7 +27,7 @@ class plotVoronoi:
         plt.xlim(min(x)-20, max(x)+15)
         plt.ylim(min(y)-20, max(y)+15)
 
-    def plotPolygon(self):
+    def plotPolygon(self, file_name):
         vals = np.linspace(0,1,256)
         colors = ["red",  "green", "blue","cyan"]
         c= 0
@@ -50,10 +50,10 @@ class plotVoronoi:
                 x_new.append(pt[0])
                 y_new.append(pt[1])
 
-            #plt.fill(x_new,y_new)#, colors[c])
+            plt.fill(x_new,y_new)#, colors[c])
             c+=1
-        plt.show()
-        #plt.savefig("geocities.png")
+
+        plt.savefig("figures/%s_voronoi_fill.png"%file_name)
 
     def plotEdges(self, edges, color_):
         x_coor, y_coor, neg_edge, pos_edge =[], [], 0, 0
@@ -158,7 +158,7 @@ class plotVoronoi:
         plt.xlim(-200,200)
         plt.ylim(-200,200)
 
-    def plotTriangles(self):
+    def plotTriangles(self, file_name):
         x = [pt.x for pt in self.pts]
         y = [pt.y for pt in self.pts]
 
@@ -168,4 +168,4 @@ class plotVoronoi:
                 index_2 = (triangle[(i+1)%len(triangle)])
 
                 plt.plot([x[index_1], x[index_2]], [y[index_1], y[index_2]])
-        plt.savefig("figures/Delaunay_cities.png")
+        plt.savefig("figures/%s_delaunay.png"%file_name)

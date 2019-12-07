@@ -6,6 +6,7 @@ from functools import reduce
 import operator, math
 import geopandas
 
+global BIG_FLOAT
 BIG_FLOAT = 1e3
 
 class plotVoronoi:
@@ -18,14 +19,18 @@ class plotVoronoi:
         self.triangles = triangles # a dict of site:[edges] pairs
 
 #edge 3-tuple: (line index, vertex 1 index, vertex 2 index)   if either vertex index is -1, the edge extends to infiinity
+    def setBF(self, x, y):
+        global BIG_FLOAT
+        BIG_FLOAT= 2*max(max((x)), max((y)))
 
-    def plotPoints(self):
+    def plotPoints(self, file_name):
         x = [pt.x for pt in self.pts]
         y = [pt.y for pt in self.pts]
-
-        plt.scatter(x, y, color = 'r')
+        self.setBF(x,y)
+        plt.scatter(x, y, color = 'black')
         plt.xlim(min(x)-20, max(x)+15)
         plt.ylim(min(y)-20, max(y)+15)
+        plt.savefig("figures/points_%s.png"%file_name)
 
     def plotPolygon(self, file_name):
         vals = np.linspace(0,1,256)
@@ -50,7 +55,7 @@ class plotVoronoi:
                 x_new.append(pt[0])
                 y_new.append(pt[1])
 
-            plt.fill(x_new,y_new)#, colors[c])
+            #plt.fill(x_new,y_new)#, colors[c])
             c+=1
 
         plt.savefig("figures/%s_voronoi_fill.png"%file_name)

@@ -837,7 +837,7 @@ if __name__=="__main__":
 
     pltv = plotVoronoi(pts = pts,polygons = c.polygons, triangles= c.triangles, vertices=c.vertices, lines=c.lines, edges=c.edges)
 
-    pltv.plotPoints()
+    pltv.plotPoints(args[0])
     #pltv.geoplot()
     pltv.plotPolygon(args[0])
-    pltv.plotTriangles(args[0])
+    #pltv.plotTriangles(args[0])

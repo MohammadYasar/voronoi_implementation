@@ -28,22 +28,24 @@ class plotVoronoi:
         y = [pt.y for pt in self.pts]
         self.setBF(x,y)
         plt.scatter(x, y, color = 'black')
-        plt.xlim(min(x)-20, max(x)+15)
-        plt.ylim(min(y)-20, max(y)+15)
+        plt.xlim(min(x)*0.5, max(x)*1.3)
+        plt.ylim(min(y)*-1.1, max(y)*1.05)
         plt.savefig("figures/points_%s.png"%file_name)
 
     def plotPolygon(self, file_name):
         vals = np.linspace(0,1,256)
         colors = ["red",  "green", "blue","cyan"]
         c= 0
+        map_x, map_y = self.plotMap()
+
         for polygon in self.polygons:
             np.random.shuffle(vals)
             cmap = plt.cm.colors.ListedColormap(plt.cm.jet(vals))
-            #print  (cmap)
+
             edges = (self.polygons[polygon])
             x,y = self.plotEdges(edges, color_ = cmap)
             pts = np.concatenate((np.asarray(x).reshape(-1,1), np.asarray(y).reshape(-1,1)), axis=1)
-
+            #self.extendPolygon(pts, map_x, map_y)
             #print (x,y)
             coords = pts
 
@@ -55,10 +57,37 @@ class plotVoronoi:
                 x_new.append(pt[0])
                 y_new.append(pt[1])
 
+
             #plt.fill(x_new,y_new)#, colors[c])
             c+=1
 
         plt.savefig("figures/%s_voronoi_fill.png"%file_name)
+
+
+    def extendPolygon(self, polygon_points, map_x, map_y):
+
+        pt_1 = np.where(polygon_points[:,0]==-BIG_FLOAT)
+        pt_2 = np.where(polygon_points[:,0]==BIG_FLOAT)
+        coord_1 = []; coord_2 = []
+        if (pt_1)!=[]:
+            print (len(pt_1), polygon_points[pt_1])
+
+        if len(pt_2)!=[]:
+            print (pt_2)
+
+        if len(pt_1)==1:
+            coord_1 = polygon_points[pt_1]
+        elif len(pt_1)>1:
+            coord_1 = polygon_points[pt_1[0]]
+            coord_2 = polygon_points[pt_1[1]]
+
+        if len(pt_2)==1 and len(pt_1)==1:
+            coord_2 = polygon_points[pt_2]
+        elif len(pt_2)>1:
+            coord_1 = polygon_points[pt_2[0]]
+            coord_2 = polygon_points[pt_2[1]]
+
+
 
     def plotEdges(self, edges, color_):
         x_coor, y_coor, neg_edge, pos_edge =[], [], 0, 0
@@ -174,3 +203,31 @@ class plotVoronoi:
 
                 plt.plot([x[index_1], x[index_2]], [y[index_1], y[index_2]])
         plt.savefig("figures/%s_delaunay.png"%file_name)
+
+    def plotMap(self):
+        file_name = "spain.txt"; x = list(); y = list()
+        fp = open(file_name,'r')
+        for line in fp:
+            fld = line.split()
+            x.append(float(fld[0]))
+            y.append(float(fld[1]))
+            self.findnearestneighbor(float(fld[0]),float(fld[1]))
+        plt.scatter(x, y)
+
+
+
+        return x, y
+
+
+    def findnearestneighbor(self, x_value, y_value):
+        global BIG_FLOAT
+        min_value = BIG_FLOAT
+        min_index = 0
+
+        for i in range(len(self.pts)):
+            temp = (((x_value-self.pts[i].x)**2 + (y_value-self.pts[i].y)**2)**0.5)
+
+            min_value = temp if temp<min_value else min_value
+            min_index = i if temp<=min_value else min_index
+
+        return min_index

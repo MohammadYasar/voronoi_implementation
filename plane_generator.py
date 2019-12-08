@@ -65,7 +65,7 @@ def performsweep(points, index):
 
 
 def runVoronoi():
-    X = generate_samples(100, 25, 10)
+    X = generate_samples(1000, 25, 10)
     s = np.where(X>0)
     #plt.plot(s[0],s[1],'.')
     print (s)

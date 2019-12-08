@@ -1,100 +1,6 @@
-#############################################################################
-#
-# Voronoi diagram calculator/ Delaunay triangulator
-# Translated to Python by Bill Simons
-# September, 2005
-#
-# Additional changes by Carson Farmer added November 2010
-#
-# Calculate Delaunay triangulation or the Voronoi polygons for a set of
-# 2D input points.
-#
-# Derived from code bearing the following notice:
-#
-#  The author of this software is Steven Fortune.  Copyright (c) 1994 by AT&T
-#  Bell Laboratories.
-#  Permission to use, copy, modify, and distribute this software for any
-#  purpose without fee is hereby granted, provided that this entire notice
-#  is included in all copies of any software which is or includes a copy
-#  or modification of this software and in all copies of the supporting
-#  documentation for such software.
-#  THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
-#  WARRANTY.  IN PARTICULAR, NEITHER THE AUTHORS NOR AT&T MAKE ANY
-#  REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
-#  OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
-#
-# Comments were incorporated from Shane O'Sullivan's translation of the
-# original code into C++ (http://mapviewer.skynet.ie/voronoi.html)
-#
-# Steve Fortune's homepage: http://netlib.bell-labs.com/cm/cs/who/sjf/index.html
-#
-#############################################################################
+
 from plt_voronoi import plotVoronoi
-def usage():
-    print ("""
-voronoi - compute Voronoi diagram or Delaunay triangulation
 
-voronoi [-t -p -d]  [filename]
-
-Voronoi reads from filename (or standard input if no filename given) for a set
-of points in the plane and writes either the Voronoi diagram or the Delaunay
-triangulation to the standard output.  Each input line should consist of two
-real numbers, separated by white space.
-
-If option -t is present, the Delaunay triangulation is produced.
-Each output line is a triple i j k, which are the indices of the three points
-in a Delaunay triangle. Points are numbered starting at 0.
-
-If option -t is not present, the Voronoi diagram is produced.
-There are four output record types.
-
-s a b      indicates that an input point at coordinates a b was seen.
-l a b c    indicates a line with equation ax + by = c.
-v a b      indicates a vertex at a b.
-e l v1 v2  indicates a Voronoi segment which is a subsegment of line number l
-           with endpoints numbered v1 and v2.  If v1 or v2 is -1, the line
-           extends to infinity.
-
-Other options include:
-
-d    Print debugging info
-
-p    Produce output suitable for input to plot (1), rather than the forms
-     described above.
-
-On unsorted data uniformly distributed in the unit square, voronoi uses about
-20n+140 bytes of storage.
-
-AUTHOR
-Steve J. Fortune (1987) A Sweepline Algorithm for Voronoi Diagrams,
-Algorithmica 2, 153-174.
-""")
-
-#############################################################################
-#
-# For programmatic use two functions are available:
-#
-#   computeVoronoiDiagram(points)
-#
-#        Takes a list of point objects (which must have x and y fields).
-#        Returns a 3-tuple of:
-#
-#           (1) a list of 2-tuples, which are the x,y coordinates of the
-#               Voronoi diagram vertices
-#           (2) a list of 3-tuples (a,b,c) which are the equations of the
-#               lines in the Voronoi diagram: a*x + b*y = c
-#           (3) a list of 3-tuples, (l, v1, v2) representing edges of the
-#               Voronoi diagram.  l is the index of the line, v1 and v2 are
-#               the indices of the vetices at the end of the edge.  If
-#               v1 or v2 is -1, the line extends to infinity.
-#
-#   computeDelaunayTriangulation(points):
-#
-#        Takes a list of point objects (which must have x and y fields).
-#        Returns a list of 3-tuples: the indices of the points that form a
-#        Delaunay triangle.
-#
-#############################################################################
 import math
 import sys
 import getopt
@@ -190,12 +96,10 @@ def voronoi(siteList,context):
 
     #try:
       edgeList  = EdgeList(siteList.xmin,siteList.xmax,len(siteList))
-      print (edgeList)
       priorityQ = PriorityQueue(siteList.ymin,siteList.ymax,len(siteList))
       siteIter = siteList.iterator()
 
       bottomsite = siteIter.next()
-
       context.outSite(bottomsite)
       newsite = siteIter.next()
 
@@ -207,24 +111,24 @@ def voronoi(siteList,context):
 
           if (newsite and (priorityQ.isEmpty() or cmp(newsite,minpt) < 0)):
               # newsite is smallest -  this is a site event
-
+              print ("priorityQ status ",priorityQ.isEmpty())
               context.outSite(newsite)
 
               # get first Halfedge to the LEFT and RIGHT of the new site
               lbnd = edgeList.leftbnd(newsite)
               rbnd = lbnd.right
 
+
               # if this halfedge has no edge, bot = bottom site (whatever that is)
               # create a new edge that bisects
               bot  = lbnd.rightreg(bottomsite)
-
+              print (bot.y, newsite.y)
               edge = Edge.bisect(bot,newsite)
               context.outBisector(edge)
 
-              # create a new Halfedge, setting its pm field to 0 and insert
-              # this new bisector edge between the left and right vectors in
-              # a linked list
+
               bisector = Halfedge(edge,Edge.LE)
+
               edgeList.insert(lbnd,bisector)
 
               # if the new bisector intersects with the left edge, remove
@@ -233,8 +137,6 @@ def voronoi(siteList,context):
               if p is not None:
                   priorityQ.delete(lbnd)
                   priorityQ.insert(lbnd,p,newsite.distance(p))
-              # create a new Halfedge, setting its pm field to 1
-              # insert the new Halfedge to the right of the original bisector
 
               lbnd = bisector
               bisector = Halfedge(edge,Edge.RE)
@@ -252,27 +154,22 @@ def voronoi(siteList,context):
           elif not priorityQ.isEmpty():
               # intersection is smallest - this is a vector (circle) event
 
-              # pop the Halfedge with the lowest vector off the ordered list of
-              # vectors.  Get the Halfedge to the left and right of the above HE
-              # and also the Halfedge to the right of the right HE
 
               lbnd  = priorityQ.popMinHalfedge()
               llbnd = lbnd.left
               rbnd  = lbnd.right
               rrbnd = rbnd.right
 
-              # get the Site to the left of the left HE and to the right of
-              # the right HE which it bisects
+
               bot = lbnd.leftreg(bottomsite)
               top = rbnd.rightreg(bottomsite)
 
-              # output the triple of sites, stating that a circle goes through them
+
               mid = lbnd.rightreg(bottomsite)
               context.outTriple(bot,top,mid)
 
-              # get the vertex that caused this event and set the vertex number
-              # couldn't do this earlier since we didn't know when it would be processed
               v = lbnd.vertex
+              print ("y1, y1 ", bot.y, top.y)
               siteList.setSiteNumber(v)
               context.outVertex(v)
 
@@ -284,37 +181,28 @@ def voronoi(siteList,context):
                   context.outEdge(rbnd.edge)
 
 
-              # delete the lowest HE, remove all vertex events to do with the
-              # right HE and delete the right HE
+
               edgeList.delete(lbnd)
               priorityQ.delete(rbnd)
               edgeList.delete(rbnd)
 
-              # if the site to the left of the event is higher than the Site
-              # to the right of it, then swap them and set 'pm' to RIGHT
               pm = Edge.LE
               if bot.y > top.y:
                   bot,top = top,bot
                   pm = Edge.RE
 
-              # Create an Edge (or line) that is between the two Sites.  This
-              # creates the formula of the line, and assigns a line number to it
+              #print (bot.y, top.y)
               edge = Edge.bisect(bot, top)
               context.outBisector(edge)
 
               # create a HE from the edge
               bisector = Halfedge(edge, pm)
 
-              # insert the new bisector to the right of the left HE
-              # set one endpoint to the new edge to be the vector point 'v'
-              # If the site to the left of this bisector is higher than the right
-              # Site, then this endpoint is put in position 0; otherwise in pos 1
               edgeList.insert(llbnd, bisector)
               if edge.setEndpoint(Edge.RE - pm, v):
                   context.outEdge(edge)
 
-              # if left HE and the new bisector don't intersect, then delete
-              # the left HE, and reinsert it
+
               p = llbnd.intersect(bisector)
               if p is not None:
                   priorityQ.delete(llbnd);
@@ -333,10 +221,7 @@ def voronoi(siteList,context):
           he = he.right
 
       Edge.EDGE_NUM = 0
-    #except Exception as ex:
-    #  template = "An exception of type {0} occurred. Arguments:\n{1!r}"
-    #  message = template.format(type(ex).__name__, ex.args)
-    #  print (message)
+
 #------------------------------------------------------------------
 def isEqual(a,b,relativeError=TOLERANCE):
     # is nearly equal to within the allowed relative error
@@ -402,10 +287,7 @@ class Edge(object):
         newedge.reg[0] = s1 # store the sites that this edge is bisecting
         newedge.reg[1] = s2
 
-        # to begin with, there are no endpoints on the bisector - it goes to infinity
-        # ep[0] and ep[1] are None
 
-        # get the difference in x dist between the sites
         dx = float(s2.x - s1.x)
         dy = float(s2.y - s1.y)
         adx = abs(dx)  # make sure that the difference in positive
@@ -577,7 +459,7 @@ class EdgeList(object):
         self.rightend.left = self.leftend
         self.hash[0]  = self.leftend
         self.hash[-1] = self.rightend
-        print (self.hash[0], self.hash[-1])
+
     def insert(self,left,he):
         he.left  = left
         he.right = left.right
@@ -635,6 +517,7 @@ class EdgeList(object):
         # Update hash table and reference counts
         if(bucket > 0 and bucket < self.hashsize-1):
             self.hash[bucket] = he
+
         return he
 
 
@@ -658,7 +541,8 @@ class PriorityQueue(object):
 
     def insert(self,he,site,offset):
         he.vertex = site
-        he.ystar  = site.y + offset
+        he.ystar = site.y + offset
+
         last = self.hash[self.getBucket(he)]
         next = last.qnext
         while((next is not None) and cmp(he,next) > 0):
@@ -696,6 +580,7 @@ class PriorityQueue(object):
         curr = self.hash[self.minidx].qnext
         self.hash[self.minidx].qnext = curr.qnext
         self.count -= 1
+
         return curr
 
 
@@ -809,10 +694,12 @@ if __name__=="__main__":
 
 
     if not doHelp:
-        pts = []
+        pts = []; spain_pts = []
         fp = sys.stdin
+
         if len(args) > 0:
             fp = open(args[0],'r')
+
 
         for line in fp:
             fld = line.split()
@@ -829,15 +716,10 @@ if __name__=="__main__":
     sl = SiteList(pts)
     voronoi(sl,c)
 
-    #print (c.vertices)
-    #print (c.polygons)
-    #print (c.lines) # equation of line 3-tuple (a b c), for the equation of the line a*x+b*y = c
-    #print (c.edges) # edge 3-tuple: (line index, vertex 1 index, vertex 2 index)   if either vertex index is -1, the edge extends to infiinity
-
 
     pltv = plotVoronoi(pts = pts,polygons = c.polygons, triangles= c.triangles, vertices=c.vertices, lines=c.lines, edges=c.edges)
 
     pltv.plotPoints(args[0])
     #pltv.geoplot()
     pltv.plotPolygon(args[0])
-    #pltv.plotTriangles(args[0])
+    pltv.plotTriangles(args[0])

@@ -27,6 +27,14 @@ print('CRS:', area.crs)   # gives epsg:4326 -> WGS 84
 area = area.to_crs(epsg=3395)    # convert to World Mercator CRS
 area_shape = area.iloc[0].geometry   # get the Polygon
 
+points = np.asarray(area_shape.exterior)
+
+
+spain_pts = np.concatenate((np.asarray(points[:,0]).reshape(-1,1), np.asarray(points[:,1]).reshape(-1,1)), axis=1)
+spain_pts_df = pd.DataFrame(spain_pts)
+spain_pts_df.to_csv("spain.txt", sep =" ", index=False, header=False)
+plt.scatter(points[:,0], points[:,1])
+plt.show()
 # generate some random points within the bounds
 minx, miny, maxx, maxy = area_shape.bounds
 
